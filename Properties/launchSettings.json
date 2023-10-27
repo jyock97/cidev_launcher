@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "cidev_launcher (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "cidev_launcher (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
