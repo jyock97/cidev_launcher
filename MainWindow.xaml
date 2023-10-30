@@ -10,5 +10,29 @@
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
         <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
+        <!--<Image Source="https://img.itch.zone/aW1nLzgzODQzODkucG5n/original/fmGFM2.png"/>-->
+        <!--<PersonPicture BaseUri="https://img.itch.zone/aW1hZ2UvMjA3OTAxLzEzMjA3ODUucG5n/300x240%23c/Sy1%2FgL.png" />-->
+        <PersonPicture ProfilePicture="https://learn.microsoft.com/windows/uwp/contacts-and-calendar/images/shoulder-tap-static-payload.png" />
     </StackPanel>
+
+    <!--<Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            --><!-- STEP 1: Add DropDownButton & ToggleSwitch CODE --><!--
+        </Grid>
+
+        <Grid x:Name="Control1" Grid.Row="1" ColumnSpacing="30" RowSpacing="12"
+          VerticalAlignment="Center" HorizontalAlignment="Center">
+            --><!-- STEP 3: Define column & row positioning -->
+            <!-- STEP 4: Add Styling for BUTTON -->
+            <!-- STEP 2: Add BUTTON CODE --><!--
+        </Grid>
+    </Grid>-->
 </Window>
