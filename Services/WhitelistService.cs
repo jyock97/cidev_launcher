@@ -1,28 +1,26 @@
 ﻿using cidev_launcher.Models;
 using System.Collections.Generic;
 
-// Get download link from here... The id need to be scraped from the HTML
-// https://rednose-interactive.itch.io/witchcraft-tales/file/7427162
 namespace cidev_launcher.Services
 {
-    public class ItchioService
+    public class WhitelistService
     {
-        private static ItchioService _instance;
-        public static ItchioService Instance
+        private static WhitelistService _instance;
+        public static WhitelistService Instance
         {
             get
             {
-                if (_instance == null) { _instance = new ItchioService(); }
+                if (_instance == null) { _instance = new WhitelistService(); }
                 return _instance;
             }
         }
 
-        public List<Game> GetCidevGames(int page = 1)
+        public List<Game> GetWhitelistGames()
         {
             return new List<Game>()
             {
                 new Game(){
-                   gameTitle= "Title1",
+                   gameTitle= "WaterLava",
                    thumbnailImgUrl= "https://img.itch.zone/aW1hZ2UvMjA1ODU0Lzk2MzY0MC5wbmc=/315x250%23c/GwUluW.png",
                    headerImgUrl = "",
                    pageUrl= "https://bogamedia.itch.io/agualava",
@@ -31,12 +29,13 @@ namespace cidev_launcher.Services
 
                 new Game(){
                   gameTitle=  "WitchCraftTales",
-                  thumbnailImgUrl=  "https://img.itch.zone/aW1hZ2UvMjA1ODU0Lzk2MzY0MC5wbmc=/315x250%23c/GwUluW.png",
+                  thumbnailImgUrl=  "https://img.itch.zone/aW1nLzExNDI1OTk1LnBuZw==/315x250%23c/VyTz0m.png",
                   headerImgUrl =  "https://img.itch.zone/aW1nLzExNDI2MTI3LnBuZw==/original/%2BU9z%2FB.png",
                   pageUrl=  "https://rednose-interactive.itch.io/witchcraft-tales",
                   downloadUrl=  "https://w3g3a5v6.ssl.hwcdn.net/upload2/game/1749062/7427162?GoogleAccessId=uploader@moonscript2.iam.gserviceaccount.com&Expires=1698472714&Signature=FQxaIQ0RmIYcAWqc7%2F2VyNQaVuI5%2Bf8Pha0kd47Crj8Q%2FdDjnGdyg2dtdtVfMZBqTlA1jel46uG%2Fx9RiBfSDgkDtYAgW2SS7b5Ay9xDP3Tp58bowHRw68u07y4YRnhkhgqz6SOdGuuGZqZ6nYWYLSTLs3xz17VG5u1E0DGzQcnasZ8TkGD%2FanqX%2BsOkmIv5WBjJYu84Ig73VC%2BmafIY8Psj4z4wxp4IlM1uUjXTvrI7dIjvAwkGfcA5AvgDc%2BJwAHR0jGTQO24qaPlKmrzcxrm76LUYRfamR9nWvVQ6mh0IMsfbpjNkXduGcWquRGxZsTpgLNQWJe9B6hbK4wUfzaw==&hwexp=1698472974&hwsig=a51ef6c03924ad951d6cd3e7964a6884"
                 }
             };
+
         }
     }
 }
