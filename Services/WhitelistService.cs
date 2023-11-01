@@ -36,7 +36,7 @@ namespace cidev_launcher.Services
                 },
 
                 new Game(){
-                  gameTitle=  "ScaryGame",
+                  gameTitle=  "12345678901234567890123456789012",
                   thumbnailImgUrl=  "https://img.itch.zone/aW1nLzI5OTkxOTguanBn/315x250%23c/Xar8%2FH.jpg",
                   headerImgUrl =  "https://img.itch.zone/aW1nLzk0MzE4OTUuZ2lm/original/ClEOfL.gifhttps://img.itch.zone/aW1nLzk0MzE4OTUuZ2lm/original/ClEOfL.gif",
                   pageUrl=  "https://modus-interactive.itch.io/shaderlab",

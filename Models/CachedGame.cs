@@ -8,5 +8,22 @@
         public string thumbnailImgPath { get; set; }
         public string headerImgPath { get; set; }
         public string downloadPath { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            var item = obj as CachedGame;
+
+            if (item == null)
+            {
+                return false;
+            }
+
+            return this.cachedDirectory.Equals(item.cachedDirectory);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.cachedDirectory.GetHashCode();
+        }
     }
 }
