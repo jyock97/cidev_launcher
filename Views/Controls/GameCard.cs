@@ -5,9 +5,6 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
-
 namespace cidev_launcher.Views.Controls
 {
     public sealed class GameCard : StackPanel
@@ -28,6 +25,18 @@ namespace cidev_launcher.Views.Controls
 
             this.Children.Add(img);
             this.Children.Add(txt);
+        }
+
+        public void Expand()
+        {
+            this.Width = 400;
+
+            Image img = new Image();
+            var i = this.Children[0] as Image;
+            img.Source = i.Source;
+            img.Stretch = Stretch.UniformToFill;
+
+            this.Children.Add(img);
         }
     }
 }

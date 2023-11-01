@@ -8,7 +8,25 @@
     xmlns:myns="using:cidev_launcher.Views.Pages"
     mc:Ignorable="d">
 
-
-    <myns:ExplorePage />
+    <NavigationView x:Name="mainWindow_NavigationView" PaneDisplayMode="Top" SelectionChanged="_OnNavigationChanged" IsBackButtonVisible="Collapsed">
+        <NavigationView.MenuItems>
+            <NavigationViewItem x:Name="mainWindow_NavigationItemGames" Content="Games"  Tag="Games" >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xE7FC;" />
+                </NavigationViewItem.Icon>
+                <NavigationViewItem.InfoBadge>
+                    <InfoBadge x:Name="mainWindow_GamesInfoBadge" Value="0" Opacity="0"/>
+                </NavigationViewItem.InfoBadge>
+            </NavigationViewItem>
+            <NavigationViewItem x:Name="mainWindow_NavigationItemExplore" Content="Explore" Tag="Explore" IsSelected="True" >
+                <NavigationViewItem.Icon>
+                    <FontIcon Glyph="&#xECCD;" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+        </NavigationView.MenuItems>
+        <Frame x:Name="mainWindow_Frame">
+            <myns:ExplorePage />
+        </Frame>
+    </NavigationView>
 
 </Window>

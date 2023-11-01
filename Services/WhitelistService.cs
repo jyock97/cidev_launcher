@@ -33,7 +33,17 @@ namespace cidev_launcher.Services
                   headerImgUrl =  "https://img.itch.zone/aW1nLzExNDI2MTI3LnBuZw==/original/%2BU9z%2FB.png",
                   pageUrl=  "https://rednose-interactive.itch.io/witchcraft-tales",
                   downloadUrl=  "https://w3g3a5v6.ssl.hwcdn.net/upload2/game/1749062/7427162?GoogleAccessId=uploader@moonscript2.iam.gserviceaccount.com&Expires=1698472714&Signature=FQxaIQ0RmIYcAWqc7%2F2VyNQaVuI5%2Bf8Pha0kd47Crj8Q%2FdDjnGdyg2dtdtVfMZBqTlA1jel46uG%2Fx9RiBfSDgkDtYAgW2SS7b5Ay9xDP3Tp58bowHRw68u07y4YRnhkhgqz6SOdGuuGZqZ6nYWYLSTLs3xz17VG5u1E0DGzQcnasZ8TkGD%2FanqX%2BsOkmIv5WBjJYu84Ig73VC%2BmafIY8Psj4z4wxp4IlM1uUjXTvrI7dIjvAwkGfcA5AvgDc%2BJwAHR0jGTQO24qaPlKmrzcxrm76LUYRfamR9nWvVQ6mh0IMsfbpjNkXduGcWquRGxZsTpgLNQWJe9B6hbK4wUfzaw==&hwexp=1698472974&hwsig=a51ef6c03924ad951d6cd3e7964a6884"
+                },
+
+                new Game(){
+                  gameTitle=  "ScaryGame",
+                  thumbnailImgUrl=  "https://img.itch.zone/aW1nLzI5OTkxOTguanBn/315x250%23c/Xar8%2FH.jpg",
+                  headerImgUrl =  "https://img.itch.zone/aW1nLzk0MzE4OTUuZ2lm/original/ClEOfL.gifhttps://img.itch.zone/aW1nLzk0MzE4OTUuZ2lm/original/ClEOfL.gif",
+                  pageUrl=  "https://modus-interactive.itch.io/shaderlab",
+                  downloadUrl=  "https://w3g3a5v6.ssl.hwcdn.net/upload2/game/1749062/7427162?GoogleAccessId=uploader@moonscript2.iam.gserviceaccount.com&Expires=1698472714&Signature=FQxaIQ0RmIYcAWqc7%2F2VyNQaVuI5%2Bf8Pha0kd47Crj8Q%2FdDjnGdyg2dtdtVfMZBqTlA1jel46uG%2Fx9RiBfSDgkDtYAgW2SS7b5Ay9xDP3Tp58bowHRw68u07y4YRnhkhgqz6SOdGuuGZqZ6nYWYLSTLs3xz17VG5u1E0DGzQcnasZ8TkGD%2FanqX%2BsOkmIv5WBjJYu84Ig73VC%2BmafIY8Psj4z4wxp4IlM1uUjXTvrI7dIjvAwkGfcA5AvgDc%2BJwAHR0jGTQO24qaPlKmrzcxrm76LUYRfamR9nWvVQ6mh0IMsfbpjNkXduGcWquRGxZsTpgLNQWJe9B6hbK4wUfzaw==&hwexp=1698472974&hwsig=a51ef6c03924ad951d6cd3e7964a6884"
                 }
+
+
             };
 
         }

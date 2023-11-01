@@ -3,10 +3,13 @@ using cidev_launcher.Services;
 using cidev_launcher.Views.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using WinRT;
 
-// TODO Create Grid of images (Games) -> need to know how to create on demand
+// TODO Re arange images when clicked on the GameCard, make that Gamecard bigger and add buttons, etc
 // TODO Implement Default images (when they are missing or failed to download)
 
 namespace cidev_launcher.Views.Pages
@@ -38,8 +41,32 @@ namespace cidev_launcher.Views.Pages
             }
         }
 
-        private void myButton_Click(object sender, RoutedEventArgs e)
+        private void _exploreGridView_GameClick(object sender, ItemClickEventArgs e)
         {
+            //Frame mainWindow = this.Parent.As<Frame>();
+            //if (mainWindow != null)
+            //{
+            //    //mainWindow.TransitionToGamePage(new CachedGame());
+            //}
+
+            if (e.ClickedItem.GetType() == typeof(GameCard))
+            {
+                GameCard gameCard = e.ClickedItem as GameCard;
+
+                gameCard.Expand();
+            }
+            else
+            {
+                Debug.WriteLine("\n\n NO");
+            }
+        }
+        private void n_exploreGridView_GameClick()
+        {
+            //if (sender.GetType() == typeof(GameCard))
+            //{
+            //    Debug.WriteLine("\t[ExplorePage] GameCard");
+            //}
+
             //myButton.Content = "Clicked";
 
             //// Create the file picker

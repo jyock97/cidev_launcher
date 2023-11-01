@@ -28,7 +28,8 @@
   <GridView
     x:Name="_exploreGridView"
     IsItemClickEnabled="True"
-    SelectionMode="Single">
+    SelectionMode="Single"
+    ItemClick="_exploreGridView_GameClick">
   </GridView>
   
 </Page>
