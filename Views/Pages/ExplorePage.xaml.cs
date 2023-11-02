@@ -3,12 +3,11 @@ using cidev_launcher.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 // TODO Continue working with GamePage (Download exe and create new process)
+// TODO Add Sckeletons for loading images (not blocking)
 // TODO Implement Default images (when they are missing or failed to download)
 
 namespace cidev_launcher.Views.Pages
@@ -38,7 +37,7 @@ namespace cidev_launcher.Views.Pages
                 //Debug.WriteLine($"\t[Explore Page] headerImgPath: {cachedGame.headerImgPath}");
                 //Debug.WriteLine($"\t[Explore Page] downloadPath: {cachedGame.downloadPath}");
             }
-            
+
             explorePage_GridView.ItemsSource = cachedGames.Values;
 
             if (SelectedGame != null)
@@ -48,17 +47,14 @@ namespace cidev_launcher.Views.Pages
                 explorePage_GridView.UpdateLayout();
 
                 explorePage_GridView.Focus(FocusState.Programmatic);
-            }
-        }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            base.OnNavigatedTo(e);
+                var anim = ConnectedAnimationService.GetForCurrentView().GetAnimation("GamePageToExplorePage");
+                if (anim != null)
+                {
+                    await explorePage_GridView.TryStartConnectedAnimationAsync(anim, SelectedGame, "explorePage_Thumbnail");
+                }
 
-            var anim = ConnectedAnimationService.GetForCurrentView().GetAnimation("GamePageToExplorePage");
-            if (anim != null)
-            {
-                anim.TryStart(explorePage_GridView);
+                SelectedGame = null;
             }
         }
 

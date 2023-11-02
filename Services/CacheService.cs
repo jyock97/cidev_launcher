@@ -1,5 +1,4 @@
-﻿
-using cidev_launcher.Models;
+﻿using cidev_launcher.Models;
 using cidev_launcher.Utils;
 using System;
 using System.Collections.Generic;
@@ -16,6 +15,7 @@ namespace cidev_launcher.Services
         private static CacheService _instance;
 
         private const string CachedPath = "_Cached";
+        private string DefaultImgPath = $"{AppDomain.CurrentDomain.BaseDirectory}Assets\\DefaultImg.png";
 
         private Dictionary<string, CachedGame> cachedGames;
 
@@ -68,16 +68,22 @@ namespace cidev_launcher.Services
                     string directoryPath = $"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}\\{gameHash}";
                     Directory.CreateDirectory(directoryPath);
 
-                    string fileExtention = Path.GetExtension(game.thumbnailImgUrl);
-                    string thumbnailPath = $"{directoryPath}\\thumbnail{fileExtention}";
-                    await DownloadImage(game.thumbnailImgUrl, thumbnailPath).ConfigureAwait(false);
+                    string thumbnailFileExtention = Path.GetExtension(game.thumbnailImgUrl);
+                    string thumbnailPath = $"{directoryPath}\\thumbnail{thumbnailFileExtention}";
+                    thumbnailPath = await TryDownloadImage(game.thumbnailImgUrl, thumbnailPath).ConfigureAwait(false);
+
+                    string headerFileExtention = Path.GetExtension(game.headerImgUrl);
+                    string headerPath = $"{directoryPath}\\header{headerFileExtention}";
+                    headerPath = await TryDownloadImage(game.headerImgUrl, headerPath).ConfigureAwait(false);
+
 
                     CachedGame cachedGame = new CachedGame()
                     {
                         gameInfo = game,
                         cachedDirectory = directoryPath,
-                        shouldExitClearCache = true,
-                        thumbnailImgPath = thumbnailPath
+                        isGameDownloaded = false,
+                        thumbnailImgPath = thumbnailPath,
+                        headerImgPath = headerPath
                     };
                     string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
                     File.WriteAllText($"{directoryPath}.meta", serialized);
@@ -88,13 +94,27 @@ namespace cidev_launcher.Services
             return cachedGames;
         }
 
-        private async Task DownloadImage(string url, string filePath)
+        private async Task<string> TryDownloadImage(string url, string filePath)
         {
-            HttpClient httpClient = new HttpClient();
-            Debug.WriteLine($"\t[CacheService][Dowload] {url}");
-            byte[] imageByte = await httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
+            string resultPath = DefaultImgPath;
+            try
+            {
+                if (url != null)
+                {
+                    HttpClient httpClient = new HttpClient();
+                    Debug.WriteLine($"\t[CacheService][Dowload] {url}");
+                    byte[] imageByte = await httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
 
-            File.WriteAllBytes(filePath, imageByte);
+                    File.WriteAllBytes(filePath, imageByte);
+                    resultPath = filePath;
+                }
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine($"\t[CacheService][Dowload] Error while download {url}");
+            }
+
+            return resultPath;
         }
     }
 }

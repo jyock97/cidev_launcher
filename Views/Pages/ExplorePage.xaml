@@ -10,23 +10,23 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-  <GridView x:Name="explorePage_GridView"
+    <GridView x:Name="explorePage_GridView"
             IsItemClickEnabled="True"
             SelectionMode="None"
             Loaded="_explorePageGridView_Loaded"
             ItemClick="_explorePageGridView_ItemClick" >
-    <GridView.ItemTemplate>
-      <DataTemplate x:DataType="models:CachedGame">
-        <StackPanel Width="200" Height="200" Margin="16">
+        <GridView.ItemTemplate>
+            <DataTemplate x:DataType="models:CachedGame">
+                <StackPanel Width="200" Height="200" Margin="16">
 
-          <!-- The image to connect between pages. -->
-          <Image Source="{x:Bind thumbnailImgPath}" MinWidth="100" Stretch="Uniform"/>
+                    <!-- The image to connect between pages. -->
+                    <Image x:Name="explorePage_Thumbnail" Source="{x:Bind thumbnailImgPath}" MinWidth="100" Stretch="Uniform"/>
 
-          <TextBlock Text="{x:Bind gameInfo.gameTitle}" Style="{ThemeResource SubtitleTextBlockStyle}" HorizontalAlignment="Left" Margin="0,8,0,0" />
-          
-        </StackPanel>
-      </DataTemplate>
-    </GridView.ItemTemplate>
-  </GridView>
+                    <TextBlock Text="{x:Bind gameInfo.gameTitle}" Style="{ThemeResource SubtitleTextBlockStyle}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+
+                </StackPanel>
+            </DataTemplate>
+        </GridView.ItemTemplate>
+    </GridView>
 
 </Page>

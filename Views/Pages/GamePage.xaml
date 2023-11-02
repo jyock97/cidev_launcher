@@ -10,36 +10,75 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <StackPanel>
-        <StackPanel x:Name="headerBackground" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="{ThemeResource SystemControlAcrylicElementBrush}">
-            <Button x:Name="gamePage_BackButton" Loaded="_gamePage_BackButton_Loaded" Click="_gamePage_BackButton_Click"
-                    HorizontalAlignment="Left" VerticalAlignment="Top" Background="{ThemeResource SystemAccentColor}" >
+        <Canvas Canvas.ZIndex="4">
+            <Button x:Name="gamePage_BackButton"
+                    Loaded="_gamePage_BackButton_Loaded" Click="_gamePage_BackButton_Click"
+                    Canvas.Left="16" Canvas.Top="16"
+                    Background="{ThemeResource SystemAccentColor}" >
                 <FontIcon Glyph="&#xE72B;" />
             </Button>
-        </StackPanel>
+        </Canvas>
 
-        <StackPanel x:Name="headerContent" Margin="20,52,20,20">
+        <Image x:Name="gamePage_Header"
+               Source="{x:Bind SelectedGame.headerImgPath}" 
+               Height="400" VerticalAlignment="Top" Stretch="Fill" />
+
+        <StackPanel x:Name="headerContent"
+                    HorizontalAlignment="Left" Orientation="Horizontal" Margin="16" >
             <!-- Connected image -->
-            <Image x:Name="gamePage_Thumbnail" Width="400" Height="400" Source="{x:Bind SelectedGame.thumbnailImgPath}" VerticalAlignment="Top" Stretch="Uniform" />
+            <Image x:Name="gamePage_Thumbnail"
+                   Source="{x:Bind SelectedGame.thumbnailImgPath}"
+                   Width="400" Height="400" Stretch="Uniform" VerticalAlignment="Top" />
 
-            <!-- Panel to be coordinated with connected animation -->
-            <StackPanel x:Name="coordinatedPanel" Grid.Column="1" VerticalAlignment="Top" Margin="20,0">
-                <TextBlock Text="{x:Bind SelectedGame.gameInfo.gameTitle}" Style="{ThemeResource SubheaderTextBlockStyle}" Margin="0,0,0,10"  />
+            <StackPanel Margin="16">
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Views: " Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="Bold"/>
-                    <TextBlock Text="Views: " Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="Bold"/>
+                    <Button x:Name="gamePage_DownloadButton"
+                            Click="gamePage_DownloadButton_Click"
+                            Margin="8"
+                            Background="{ThemeResource SystemAccentColor}" >
+                        <StackPanel Orientation="Horizontal">
+                            <FontIcon Glyph="&#xEBD3;" />
+                            <TextBlock Text="Download" Margin="8, 0, 0, 0" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="gamePage_PlayButton"
+                            Click="gamePage_PlayButton_Click"
+                            Margin="8"
+                            Background="{ThemeResource SystemAccentColor}" >
+                        <StackPanel Orientation="Horizontal">
+                            <FontIcon Glyph="&#xE768;" />
+                            <TextBlock Text="Play" Margin="8, 0, 0, 0" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="gamePage_UpdateButton"
+                            Click="gamePage_UpdateButton_Click"
+                            Margin="8"
+                            Background="{ThemeResource SystemAccentColor}" >
+                        <StackPanel Orientation="Horizontal">
+                            <FontIcon Glyph="&#xE777;" />
+                            <TextBlock Text="Update" Margin="8, 0, 0, 0" />
+                        </StackPanel>
+                    </Button>
+                    <Button x:Name="gamePage_DeleteButton"
+                            Click="gamePage_DeleteButton_Click"
+                            Margin="8"
+                            Background="{ThemeResource SystemAccentColor}" >
+                        <StackPanel Orientation="Horizontal">
+                            <FontIcon Glyph="&#xE74D;" />
+                            <TextBlock Text="Delete" Margin="8, 0, 0, 0" />
+                        </StackPanel>
+                    </Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Likes: " Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="Bold" />
-                    <TextBlock Text="Likes: " Style="{ThemeResource SubtitleTextBlockStyle}" FontWeight="Bold" />
-                </StackPanel>
+
+
+                <TextBlock Text="{x:Bind SelectedGame.gameInfo.gameTitle}"
+                           FontSize="32" FontWeight="Bold" Margin="0, 8, 0, 16" />
+
+                <TextBlock Text="{x:Bind SelectedGame.gameInfo.description}" 
+                           FontSize="18" Margin="0, 8, 0, 16" />
+
             </StackPanel>
         </StackPanel>
-
-        <!-- Panel containing more info, to be shown after the connected animation. -->
-        <StackPanel x:Name="moreInfoPanel" Grid.Row="1" Margin="10">
-            <TextBlock Text="{x:Bind SelectedGame.downloadPath}" Style="{ThemeResource SubtitleTextBlockStyle}"  />
-        </StackPanel>
-
 
     </StackPanel>
 </Page>
