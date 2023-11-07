@@ -2,7 +2,9 @@ using cidev_launcher.Models;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.UI.Xaml.Navigation;
+using System;
 using System.IO;
 
 namespace cidev_launcher.Views.Pages
@@ -29,16 +31,25 @@ namespace cidev_launcher.Views.Pages
             }
 
 
-            if (!File.Exists(SelectedGame.headerImgPath))
+
+
+
+
+
+
+
+
+            if (File.Exists(SelectedGame.headerImgPath))
             {
-                gamePage_Header.Visibility = Visibility.Collapsed;
+                gamePage_Header.Source = new BitmapImage(new Uri(SelectedGame.headerImgPath));
+                gamePage_Header.Visibility = Visibility.Visible;
             }
             else
             {
-                gamePage_Header.Visibility = Visibility.Visible;
+                gamePage_Header.Visibility = Visibility.Collapsed;
             }
 
-            gamePage_Header.Visibility = File.Exists(SelectedGame.headerImgPath)? Visibility.Visible : Visibility.Collapsed;
+            gamePage_Header.Visibility = File.Exists(SelectedGame.headerImgPath) ? Visibility.Visible : Visibility.Collapsed;
 
             gamePage_DownloadButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Collapsed : Visibility.Visible;
             gamePage_PlayButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Visible : Visibility.Collapsed;

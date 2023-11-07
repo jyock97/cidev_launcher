@@ -20,10 +20,9 @@
         </Canvas>
 
         <Image x:Name="gamePage_Header"
-               Source="{x:Bind SelectedGame.headerImgPath}" 
                Height="400" VerticalAlignment="Top" Stretch="Fill" />
 
-        <StackPanel x:Name="headerContent"
+        <StackPanel
                     HorizontalAlignment="Left" Orientation="Horizontal" Margin="16" >
             <!-- Connected image -->
             <Image x:Name="gamePage_Thumbnail"
