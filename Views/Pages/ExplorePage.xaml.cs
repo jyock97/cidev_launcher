@@ -4,10 +4,8 @@ using cidev_launcher.Views.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
-using System;
 using System.Collections.Generic;
 
-// TODO GamePage move to a GameDetail Component that downloads the header
 // TODO Continue working with GamePage (Download exe and create new process)
 
 namespace cidev_launcher.Views.Pages
@@ -22,10 +20,10 @@ namespace cidev_launcher.Views.Pages
             this.InitializeComponent();
         }
 
-        private async void _explorePageGridView_Loaded(object sender, RoutedEventArgs e)
+        private void _explorePageGridView_Loaded(object sender, RoutedEventArgs e)
         {
             List<Game> games = WhitelistService.Instance.GetWhitelistGames();
-            List<CachedGame> cachedGames = await CacheService.Instance.GetCachedGames(games);
+            List<CachedGame> cachedGames = CacheService.Instance.GetCachedGames(games);
             foreach (CachedGame cachedGame in cachedGames)
             {
                 //Debug.WriteLine($"\t[Explore Page] gameTitle: {cachedGame.gameInfo.gameTitle}");

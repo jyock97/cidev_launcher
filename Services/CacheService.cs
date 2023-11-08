@@ -16,6 +16,7 @@ namespace cidev_launcher.Services
 
         private const string CachedPath = "_Cached";
         private const string ThumbnailFileName = "Thumbnail";
+        private const string HeaderFileName = "Header";
         private string DefaultImgPath = $"{AppDomain.CurrentDomain.BaseDirectory}Assets\\DefaultImg.png";
 
         private List<CachedGame> cachedGames;
@@ -29,12 +30,12 @@ namespace cidev_launcher.Services
             }
         }
 
-        public async Task<List<CachedGame>> GetCachedGames(List<Game> games)
+        public List<CachedGame> GetCachedGames(List<Game> games)
         {
             if (cachedGames == null)
             {
                 cachedGames = new List<CachedGame>();
-                Dictionary<string, CachedGame> cachedGamesDic = await SearchCacheGamesAsync(games).ConfigureAwait(false);
+                Dictionary<string, CachedGame> cachedGamesDic = SearchCacheGamesAsync(games);
                 foreach(CachedGame cachedGame in cachedGamesDic.Values)
                 {
                     cachedGames.Add(cachedGame);
@@ -52,6 +53,14 @@ namespace cidev_launcher.Services
             return thumbnailPath;
         }
 
+        public async Task<string> DownloadHeader(CachedGame cachedGame)
+        {
+            string headerPath = GetFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.headerImgUrl, HeaderFileName);
+            headerPath = await DownloadFile(cachedGame.gameInfo.headerImgUrl, headerPath).ConfigureAwait(false);
+
+            return headerPath;
+        }
+
         private string GetCacheDirectoryPath(string gameTitle)
         {
             string gameHash = Hash.GetHashString(gameTitle);
@@ -65,7 +74,7 @@ namespace cidev_launcher.Services
             return $"{GetCacheDirectoryPath(gameTitle)}\\{fileName}{fileExtention}";
         }
 
-        public async Task<string> DownloadFile(string url, string filePath)
+        private async Task<string> DownloadFile(string url, string filePath)
         {
             Debug.WriteLine($"\t[CacheService][Dowload] {url}");
             string resultPath = null;
@@ -84,7 +93,7 @@ namespace cidev_launcher.Services
             return resultPath;
         }
 
-        private async Task<Dictionary<string, CachedGame>> SearchCacheGamesAsync(List<Game> games)
+        private Dictionary<string, CachedGame> SearchCacheGamesAsync(List<Game> games)
         {
             if (!Directory.Exists($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}"))
             {
@@ -117,10 +126,8 @@ namespace cidev_launcher.Services
                     string thumbnailPath = GetFilePath(game.gameTitle, game.thumbnailImgUrl, ThumbnailFileName);
                     thumbnailPath = File.Exists(thumbnailPath) ? thumbnailPath : null;
 
-                    //string headerFileExtention = Path.GetExtension(game.headerImgUrl);
-                    //string headerPath = $"{directoryPath}\\header{headerFileExtention}";
-                    //headerPath = await TryDownloadImage(game.headerImgUrl, headerPath).ConfigureAwait(false);
-
+                    string headerPath = GetFilePath(game.gameTitle, game.headerImgUrl, HeaderFileName);
+                    headerPath = File.Exists(headerPath) ? headerPath : null;
 
                     CachedGame cachedGame = new CachedGame()
                     {
@@ -128,7 +135,7 @@ namespace cidev_launcher.Services
                         cachedDirectory = directoryPath,
                         isGameDownloaded = false,
                         thumbnailImgPath = thumbnailPath,
-                        //headerImgPath = headerPath
+                        headerImgPath = headerPath
                     };
                     string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
                     File.WriteAllText($"{directoryPath}.meta", serialized);
@@ -137,29 +144,6 @@ namespace cidev_launcher.Services
                 }
             }
             return cachedGamesDict;
-        }
-
-        private async Task<string> TryDownloadImage(string url, string filePath)
-        {
-            string resultPath = DefaultImgPath;
-            try
-            {
-                if (url != null)
-                {
-                    HttpClient httpClient = new HttpClient();
-                    Debug.WriteLine($"\t[CacheService][Dowload] {url}");
-                    byte[] imageByte = await httpClient.GetByteArrayAsync(url).ConfigureAwait(false);
-
-                    File.WriteAllBytes(filePath, imageByte);
-                    resultPath = filePath;
-                }
-            }
-            catch (Exception)
-            {
-                Debug.WriteLine($"\t[CacheService][Dowload] Error while download {url}");
-            }
-
-            return resultPath;
         }
     }
 }

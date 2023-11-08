@@ -1,4 +1,5 @@
 using cidev_launcher.Models;
+using cidev_launcher.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -30,26 +31,31 @@ namespace cidev_launcher.Views.Pages
                 anim.TryStart(gamePage_Thumbnail);
             }
 
-
-
-
-
-
-
-
-
-
-            if (File.Exists(SelectedGame.headerImgPath))
+            gamePage_Header.Visibility = Visibility.Collapsed;
+            if (SelectedGame.gameInfo.headerImgUrl != null)
             {
-                gamePage_Header.Source = new BitmapImage(new Uri(SelectedGame.headerImgPath));
-                gamePage_Header.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                gamePage_Header.Visibility = Visibility.Collapsed;
-            }
+                if (!File.Exists(SelectedGame.headerImgPath))
+                {
+                    CacheService.Instance.DownloadHeader(SelectedGame).ContinueWith(t =>
+                    {
+                        DispatcherQueue.TryEnqueue(() =>
+                        {
+                            SelectedGame.headerImgPath = t.Result;
 
-            gamePage_Header.Visibility = File.Exists(SelectedGame.headerImgPath) ? Visibility.Visible : Visibility.Collapsed;
+                            if (SelectedGame.headerImgPath != null)
+                            {
+                                gamePage_Header.Source = new BitmapImage(new Uri(SelectedGame.headerImgPath));
+                                gamePage_Header.Visibility = Visibility.Visible;
+                            }
+                        });
+                    });
+                }
+                else
+                {
+                    gamePage_Header.Source = new BitmapImage(new Uri(SelectedGame.headerImgPath));
+                    gamePage_Header.Visibility = Visibility.Visible;
+                }
+            }
 
             gamePage_DownloadButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Collapsed : Visibility.Visible;
             gamePage_PlayButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Visible : Visibility.Collapsed;
