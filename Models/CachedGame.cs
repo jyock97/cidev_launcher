@@ -8,6 +8,7 @@
         public string thumbnailImgPath { get; set; }
         public string headerImgPath { get; set; }
         public string downloadPath { get; set; }
+        public string downloadExePath { get; set; }
 
         public override bool Equals(object obj)
         {

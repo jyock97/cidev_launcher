@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -17,7 +19,7 @@ namespace cidev_launcher.Services
         private const string CachedPath = "_Cached";
         private const string ThumbnailFileName = "Thumbnail";
         private const string HeaderFileName = "Header";
-        private string DefaultImgPath = $"{AppDomain.CurrentDomain.BaseDirectory}Assets\\DefaultImg.png";
+        private const string GameDirectoryName = "Game";
 
         private List<CachedGame> cachedGames;
 
@@ -32,33 +34,149 @@ namespace cidev_launcher.Services
 
         public List<CachedGame> GetCachedGames(List<Game> games)
         {
-            if (cachedGames == null)
+            cachedGames = new List<CachedGame>();
+            Dictionary<string, CachedGame> cachedGamesDic = SearchCacheGamesAsync(games);
+            foreach (CachedGame cachedGame in cachedGamesDic.Values)
             {
-                cachedGames = new List<CachedGame>();
-                Dictionary<string, CachedGame> cachedGamesDic = SearchCacheGamesAsync(games);
-                foreach(CachedGame cachedGame in cachedGamesDic.Values)
-                {
-                    cachedGames.Add(cachedGame);
-                }
+                cachedGames.Add(cachedGame);
             }
 
             return cachedGames;
         }
 
-        public async Task<string> DownloadThumbnail(CachedGame cachedGame)
+        public async Task<CachedGame> DownloadThumbnail(CachedGame cachedGame)
         {
             string thumbnailPath = GetFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.thumbnailImgUrl, ThumbnailFileName);
             thumbnailPath = await DownloadFile(cachedGame.gameInfo.thumbnailImgUrl, thumbnailPath).ConfigureAwait(false);
 
-            return thumbnailPath;
+            cachedGame.thumbnailImgPath = thumbnailPath;
+            SaveCacheMetaFile(cachedGame);
+
+            return cachedGame;
         }
 
-        public async Task<string> DownloadHeader(CachedGame cachedGame)
+        public async Task<CachedGame> DownloadHeader(CachedGame cachedGame)
         {
             string headerPath = GetFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.headerImgUrl, HeaderFileName);
             headerPath = await DownloadFile(cachedGame.gameInfo.headerImgUrl, headerPath).ConfigureAwait(false);
+            cachedGame.headerImgPath = headerPath;
+            SaveCacheMetaFile(cachedGame);
 
-            return headerPath;
+            return cachedGame;
+        }
+
+        public async Task<CachedGame> DownloadGame(CachedGame cachedGame, Action<int> updateProgressCallback)
+        {
+            cachedGame.isGameDownloaded = true;
+            updateProgressCallback(-1);
+
+            Debug.WriteLine($"\t[CacheService][Dowload Game] {cachedGame.gameInfo.gameTitle}");
+            string GameFilePath = null;
+            try
+            {
+                // Download the Game from the server
+                HttpClient httpClient = new HttpClient();
+
+                HttpResponseMessage DownloadUrlResponse = await httpClient.PostAsync(cachedGame.gameInfo.downloadUrl, null);
+                string downloadGameUrlStr = await DownloadUrlResponse.Content.ReadAsStringAsync();
+                DownloadGameUrl downloadGameUrl = JsonSerializer.Deserialize<DownloadGameUrl>(downloadGameUrlStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                HttpRequestMessage requestMessage = new HttpRequestMessage();
+                requestMessage.Method = HttpMethod.Get;
+                requestMessage.RequestUri = new Uri(downloadGameUrl.url);
+                HttpResponseMessage downloadGameResponse = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
+
+                long contentLength = downloadGameResponse.Content.Headers.ContentLength.GetValueOrDefault();
+                if (contentLength == 0)
+                {
+                    updateProgressCallback(-1);
+                }
+
+                string fileName = downloadGameResponse.Content.Headers.ContentDisposition?.FileName;
+                fileName = fileName != null ? fileName.Trim('"') : "default.zip";
+
+                Debug.WriteLine($"[CacheService][Dowload Game] DownloadFile {fileName}");
+
+                Stream contentStream = downloadGameResponse.Content.ReadAsStream();
+                GameFilePath = GetFilePath(cachedGame.gameInfo.gameTitle, fileName, Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+                FileStream gameFile = File.OpenWrite(GameFilePath);
+
+
+                int downloadChunkSize = 1000000; // 1MB
+                var buffer = new byte[downloadChunkSize];
+                long totalBytesRead = 0;
+                int bytesRead;
+                while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
+                {
+                    Debug.WriteLine($"[CacheService][Dowload Game] Downloading {totalBytesRead} from {contentLength}");
+
+                    await gameFile.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+                    totalBytesRead += bytesRead;
+                    if (contentLength > 0)
+                    {
+                        updateProgressCallback((int)((((double)totalBytesRead) / ((double)contentLength)) * 100));
+                    }
+                }
+
+                gameFile.Flush();
+                gameFile.Close();
+                cachedGame.downloadPath = GameFilePath;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"\t[CacheService][Dowload Game] Error while downloading game {cachedGame.gameInfo.gameTitle} | {e.Message}");
+            }
+
+            try
+            {
+                // Unzip the file
+                updateProgressCallback(-1);
+                string downloadDirectoryPath = $"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}\\{GameDirectoryName}";
+                await Task.Run(() => ZipFile.ExtractToDirectory(GameFilePath, downloadDirectoryPath));
+
+                string[] gameExeArray = Directory.GetFiles(downloadDirectoryPath, "*.exe", SearchOption.AllDirectories)
+                    .Where(exe => !exe.Contains("UnityCrashHandler")).ToArray();
+                string gameExe = gameExeArray.Length > 0 ? gameExeArray[0] : null;
+
+                if (gameExe == null)
+                {
+                    Debug.WriteLine($"\t[CacheService][Dowload Game] Error no exe found on game's directory {downloadDirectoryPath}");
+                }
+
+                cachedGame.downloadExePath = gameExe;
+                SaveCacheMetaFile(cachedGame);
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"\t[CacheService][Dowload Game] Error while Extracting zip game {cachedGame.gameInfo.gameTitle} | {e.Message}");
+            }
+
+            return cachedGame;
+        }
+
+        public async Task<CachedGame> DeleteGame(CachedGame cachedGame)
+        {
+            string cacheDirectory = GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle);
+
+            await Task.Run(() =>
+            {
+                foreach (string filePath in Directory.EnumerateFiles(cacheDirectory))
+                {
+                    File.Delete(filePath);
+                }
+                foreach (string directoryPath in Directory.EnumerateDirectories(cacheDirectory))
+                {
+                    Directory.Delete(directoryPath, true);
+                }
+            });
+
+            CachedGame newCachedGame = new CachedGame();
+            newCachedGame.gameInfo = cachedGame.gameInfo;
+            newCachedGame.cachedDirectory = cacheDirectory;
+
+            SaveCacheMetaFile(newCachedGame);
+
+            return newCachedGame;
         }
 
         private string GetCacheDirectoryPath(string gameTitle)
@@ -137,13 +255,18 @@ namespace cidev_launcher.Services
                         thumbnailImgPath = thumbnailPath,
                         headerImgPath = headerPath
                     };
-                    string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
-                    File.WriteAllText($"{directoryPath}.meta", serialized);
+                    SaveCacheMetaFile(cachedGame);
 
                     cachedGamesDict[gameHash] = cachedGame;
                 }
             }
             return cachedGamesDict;
+        }
+
+        private void SaveCacheMetaFile(CachedGame cachedGame)
+        {
+            string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
+            File.WriteAllText($"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}.meta", serialized);
         }
     }
 }

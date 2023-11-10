@@ -26,22 +26,25 @@
                     HorizontalAlignment="Left" Orientation="Horizontal" Margin="16" >
             <!-- Connected image -->
             <Image x:Name="gamePage_Thumbnail"
-                   Source="{x:Bind SelectedGame.thumbnailImgPath}"
                    Width="400" Height="400" Stretch="Uniform" VerticalAlignment="Top" />
 
             <StackPanel Margin="16">
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="gamePage_DownloadButton"
-                            Click="gamePage_DownloadButton_Click"
+                            Click="_gamePage_DownloadButton_Click"
                             Margin="8"
                             Background="{ThemeResource SystemAccentColor}" >
                         <StackPanel Orientation="Horizontal">
-                            <FontIcon Glyph="&#xEBD3;" />
-                            <TextBlock Text="Download" Margin="8, 0, 0, 0" />
+                            <FontIcon Glyph="&#xEBD3;" VerticalAlignment="Center" />
+                            <TextBlock Text="Download" Margin="8, 0, 0, 0" VerticalAlignment="Center" />
+                            <ProgressRing x:Name="gamePage_DownloadProgressRing"
+                                          Visibility="Collapsed"
+                                          Width="20" Height="20"
+                                          Margin="8, 0, 0, 0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="gamePage_PlayButton"
-                            Click="gamePage_PlayButton_Click"
+                            Click="_gamePage_PlayButton_Click"
                             Margin="8"
                             Background="{ThemeResource SystemAccentColor}" >
                         <StackPanel Orientation="Horizontal">
@@ -50,21 +53,30 @@
                         </StackPanel>
                     </Button>
                     <Button x:Name="gamePage_UpdateButton"
-                            Click="gamePage_UpdateButton_Click"
+                            Click="_gamePage_UpdateButton_Click"
                             Margin="8"
                             Background="{ThemeResource SystemAccentColor}" >
                         <StackPanel Orientation="Horizontal">
                             <FontIcon Glyph="&#xE777;" />
                             <TextBlock Text="Update" Margin="8, 0, 0, 0" />
+                            <ProgressRing x:Name="gamePage_UpdateProgressRing"
+                                          Visibility="Collapsed"
+                                          Width="20" Height="20"
+                                          Margin="8, 0, 0, 0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="gamePage_DeleteButton"
-                            Click="gamePage_DeleteButton_Click"
+                            Click="_gamePage_DeleteButton_Click"
                             Margin="8"
                             Background="{ThemeResource SystemAccentColor}" >
                         <StackPanel Orientation="Horizontal">
                             <FontIcon Glyph="&#xE74D;" />
                             <TextBlock Text="Delete" Margin="8, 0, 0, 0" />
+                            <ProgressRing x:Name="gamePage_DeleteProgressRing"
+                                          Visibility="Collapsed"
+                                          Width="20" Height="20"
+                                          IsIndeterminate="True"
+                                          Margin="8, 0, 0, 0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                 </StackPanel>

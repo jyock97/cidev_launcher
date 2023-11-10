@@ -28,50 +28,59 @@ namespace cidev_launcher.Views.Controls
             thumbnailSkeleton.Width = 200;
             thumbnailSkeleton.Height = 200;
             thumbnailSkeleton.Fill = new SolidColorBrush(Color.FromArgb(128, 128, 128, 128));
-            
+
             Rectangle titleSkeleton = new Rectangle();
             titleSkeleton.Width = 200;
             titleSkeleton.Height = 16;
             titleSkeleton.Margin = new Thickness(0, 8, 0, 0);
             titleSkeleton.Fill = new SolidColorBrush(Color.FromArgb(128, 128, 128, 128));
 
-            this.Children.Add(thumbnailSkeleton);
-            this.Children.Add(titleSkeleton);
-            
-            ThumbnailImage = thumbnailSkeleton;
 
-            // Download Thumbnails
-            CacheService.Instance.DownloadThumbnail(cachedGame).ContinueWith(t =>
+            Image img;
+            img = new Image();
+            img.Stretch = Stretch.UniformToFill;
+
+            TextBlock txt = new TextBlock();
+            txt.Margin = new Thickness(0, 8, 0, 0);
+            txt.Text = cachedGame.gameInfo.gameTitle;
+
+
+            if (cachedGame.thumbnailImgPath == null)
             {
-                DispatcherQueue.TryEnqueue(() =>
+                this.Children.Add(thumbnailSkeleton);
+                this.Children.Add(titleSkeleton);
+
+                ThumbnailImage = thumbnailSkeleton;
+
+                // Download Thumbnails
+                CacheService.Instance.DownloadThumbnail(cachedGame).ContinueWith(t =>
                 {
-                    cachedGame.thumbnailImgPath = t.Result;
-
-                    this.Children.Clear();
-
-                    if (cachedGame.thumbnailImgPath != null)
+                    DispatcherQueue.TryEnqueue(() =>
                     {
-                        Image img;
-                        img = new Image();
-                        img.Source = new BitmapImage(new Uri(cachedGame.thumbnailImgPath));
-                        img.Stretch = Stretch.UniformToFill;
+                        cachedGame = t.Result;
 
-                        ThumbnailImage = img;
+                        this.Children.Clear();
 
-                        this.Children.Add(img);
-                    }
-                    else
-                    {
-                        ThumbnailImage = thumbnailSkeleton;
-                        this.Children.Add(thumbnailSkeleton);
-                    }
+                        if (cachedGame.thumbnailImgPath != null)
+                        {
+                            img.Source = new BitmapImage(new Uri(cachedGame.thumbnailImgPath));
 
-                    TextBlock txt = new TextBlock();
-                    txt.Margin = new Thickness(0, 8, 0, 0);
-                    txt.Text = cachedGame.gameInfo.gameTitle;
-                    this.Children.Add(txt);
+                            ThumbnailImage = img;
+                        }
+
+                        this.Children.Add(ThumbnailImage);
+                        this.Children.Add(txt);
+                    });
                 });
-            });
+            }
+            else
+            {
+                ThumbnailImage = img;
+                img.Source = new BitmapImage(new Uri(cachedGame.thumbnailImgPath));
+
+                this.Children.Add(ThumbnailImage);
+                this.Children.Add(txt);
+            }
         }
     }
 }

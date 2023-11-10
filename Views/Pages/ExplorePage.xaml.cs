@@ -7,6 +7,10 @@ using Microsoft.UI.Xaml.Media.Animation;
 using System.Collections.Generic;
 
 // TODO Continue working with GamePage (Download exe and create new process)
+// TODO Create a restore process on the CacheService for a new GamePage to restore from what is currently happening on another thread
+// |- Need to know if current game is still downloading or Updating
+// |- Need to know the progress of the operation? IsIndeterminate or what is the current value, how can I subscribe for updates to that value?
+
 
 namespace cidev_launcher.Views.Pages
 {
@@ -26,16 +30,6 @@ namespace cidev_launcher.Views.Pages
             List<CachedGame> cachedGames = CacheService.Instance.GetCachedGames(games);
             foreach (CachedGame cachedGame in cachedGames)
             {
-                //Debug.WriteLine($"\t[Explore Page] gameTitle: {cachedGame.gameInfo.gameTitle}");
-                //Debug.WriteLine($"\t[Explore Page] thumbnailImgUrl: {cachedGame.gameInfo.thumbnailImgUrl}");
-                //Debug.WriteLine($"\t[Explore Page] headerImgUrl: {cachedGame.gameInfo.headerImgUrl}");
-                //Debug.WriteLine($"\t[Explore Page] pageUrl: {cachedGame.gameInfo.pageUrl}");
-                //Debug.WriteLine($"\t[Explore Page] downloadUrl: {cachedGame.gameInfo.downloadUrl}");
-                //Debug.WriteLine($"\t[Explore Page] shouldExitClearCache: {cachedGame.shouldExitClearCache}");
-                //Debug.WriteLine($"\t[Explore Page] thumbnailImgPath: {cachedGame.thumbnailImgPath}");
-                //Debug.WriteLine($"\t[Explore Page] headerImgPath: {cachedGame.headerImgPath}");
-                //Debug.WriteLine($"\t[Explore Page] downloadPath: {cachedGame.downloadPath}");
-
                 GameCard gameCard = new GameCard(cachedGame);
                 explorePage_GridView.Items.Add(gameCard);
                 if (SelectedGame != null && SelectedGame.Equals(cachedGame))

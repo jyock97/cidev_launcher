@@ -2,7 +2,7 @@ using cidev_launcher.Views.Pages;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-
+using System.Net;
 
 namespace cidev_launcher
 {
