@@ -23,6 +23,18 @@ namespace cidev_launcher.Services
 
         private List<CachedGame> cachedGames;
 
+        private Dictionary<string, CachedGame> currentUpdatingGames = new Dictionary<string, CachedGame>();
+        private Action<int> updateCallback;
+        private Action<CachedGame> updateEndCallback;
+
+        private Dictionary<string, CachedGame> currentDownloadingGames = new Dictionary<string, CachedGame>();
+        private Action<int> downloadCallback;
+        private Action<CachedGame> downloadEndCallback;
+
+        private Dictionary<string, CachedGame> currentDeletingGames = new Dictionary<string, CachedGame>();
+        private Action<int> deleteCallback;
+        private Action<CachedGame> deleteEndCallback;
+
         public static CacheService Instance
         {
             get
@@ -65,10 +77,32 @@ namespace cidev_launcher.Services
             return cachedGame;
         }
 
-        public async Task<CachedGame> DownloadGame(CachedGame cachedGame, Action<int> updateProgressCallback)
+        public async Task<CachedGame> UpdateGame(CachedGame cachedGame)
         {
-            cachedGame.isGameDownloaded = true;
-            updateProgressCallback(-1);
+            currentUpdatingGames[Hash.GetHashString(cachedGame.gameInfo.gameTitle)] = cachedGame;
+
+            updateCallback?.Invoke(-1);
+            cachedGame = await DownloadThumbnail(cachedGame);
+            cachedGame = await DownloadHeader(cachedGame);
+
+            DeleteSubscribeProgressRing(updateCallback);
+            cachedGame = await DeleteGame(cachedGame);
+
+            DownloadSubscribeProgressRing(updateCallback);
+            cachedGame = await DownloadGame(cachedGame);
+
+            updateEndCallback?.Invoke(cachedGame);
+
+            currentUpdatingGames.Remove(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+
+            return cachedGame;
+        }
+
+        public async Task<CachedGame> DownloadGame(CachedGame cachedGame)
+        {
+            currentDownloadingGames[Hash.GetHashString(cachedGame.gameInfo.gameTitle)] = cachedGame;
+
+            downloadCallback?.Invoke(-1);
 
             Debug.WriteLine($"\t[CacheService][Dowload Game] {cachedGame.gameInfo.gameTitle}");
             string GameFilePath = null;
@@ -87,10 +121,6 @@ namespace cidev_launcher.Services
                 HttpResponseMessage downloadGameResponse = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
                 long contentLength = downloadGameResponse.Content.Headers.ContentLength.GetValueOrDefault();
-                if (contentLength == 0)
-                {
-                    updateProgressCallback(-1);
-                }
 
                 string fileName = downloadGameResponse.Content.Headers.ContentDisposition?.FileName;
                 fileName = fileName != null ? fileName.Trim('"') : "default.zip";
@@ -114,7 +144,7 @@ namespace cidev_launcher.Services
                     totalBytesRead += bytesRead;
                     if (contentLength > 0)
                     {
-                        updateProgressCallback((int)((((double)totalBytesRead) / ((double)contentLength)) * 100));
+                        downloadCallback?.Invoke((int)((((double)totalBytesRead) / ((double)contentLength)) * 100));
                     }
                 }
 
@@ -130,9 +160,9 @@ namespace cidev_launcher.Services
             try
             {
                 // Unzip the file
-                updateProgressCallback(-1);
+                downloadCallback?.Invoke(-1);
                 string downloadDirectoryPath = $"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}\\{GameDirectoryName}";
-                await Task.Run(() => ZipFile.ExtractToDirectory(GameFilePath, downloadDirectoryPath));
+                await Task.Run(() => ZipFile.ExtractToDirectory(GameFilePath, downloadDirectoryPath, true));
 
                 string[] gameExeArray = Directory.GetFiles(downloadDirectoryPath, "*.exe", SearchOption.AllDirectories)
                     .Where(exe => !exe.Contains("UnityCrashHandler")).ToArray();
@@ -143,6 +173,7 @@ namespace cidev_launcher.Services
                     Debug.WriteLine($"\t[CacheService][Dowload Game] Error no exe found on game's directory {downloadDirectoryPath}");
                 }
 
+                cachedGame.isGameDownloaded = true;
                 cachedGame.downloadExePath = gameExe;
                 SaveCacheMetaFile(cachedGame);
             }
@@ -151,11 +182,18 @@ namespace cidev_launcher.Services
                 Debug.WriteLine($"\t[CacheService][Dowload Game] Error while Extracting zip game {cachedGame.gameInfo.gameTitle} | {e.Message}");
             }
 
+            downloadEndCallback?.Invoke(cachedGame);
+            
+            currentDownloadingGames.Remove(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+
             return cachedGame;
         }
 
         public async Task<CachedGame> DeleteGame(CachedGame cachedGame)
         {
+            currentDeletingGames[Hash.GetHashString(cachedGame.gameInfo.gameTitle)] = cachedGame;
+
+            deleteCallback?.Invoke(-1);
             string cacheDirectory = GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle);
 
             await Task.Run(() =>
@@ -175,6 +213,10 @@ namespace cidev_launcher.Services
             newCachedGame.cachedDirectory = cacheDirectory;
 
             SaveCacheMetaFile(newCachedGame);
+
+            deleteEndCallback?.Invoke(newCachedGame);
+
+            currentDeletingGames.Remove(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
 
             return newCachedGame;
         }
@@ -267,6 +309,63 @@ namespace cidev_launcher.Services
         {
             string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
             File.WriteAllText($"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}.meta", serialized);
+        }
+
+
+
+
+
+
+        public bool IsUpdating(CachedGame cachedGame)
+        {
+            return currentUpdatingGames.ContainsKey(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+        }
+
+        public bool IsDownloading(CachedGame cachedGame)
+        {
+            return currentDownloadingGames.ContainsKey(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+        }
+
+        public bool IsDeleting(CachedGame cachedGame)
+        {
+            return currentDeletingGames.ContainsKey(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+        }
+
+        public void UpdateSubscribeProgressRing(Action<int> callback)
+        {
+            updateCallback = callback;
+        }
+        public void UpdateSubscribeEndCallback(Action<CachedGame> callback)
+        {
+            updateEndCallback = callback;
+        }
+
+        public void DownloadSubscribeProgressRing(Action<int> callback)
+        {
+            downloadCallback = callback;
+        }
+        public void DownloadSubscribeEndCallback(Action<CachedGame> callback)
+        {
+            downloadEndCallback = callback;
+        }
+
+        public void DeleteSubscribeProgressRing(Action<int> callback)
+        {
+            deleteCallback = callback;
+        }
+        public void DeleteSubscribeEndCallback(Action<CachedGame> callback)
+        {
+            deleteEndCallback = callback;
+        }
+
+        public void UnsubscribeAll()
+        {
+            updateCallback = null;
+            updateEndCallback = null;
+            downloadCallback = null;
+            downloadEndCallback = null;
+            deleteCallback = null;
+            deleteEndCallback = null;
         }
     }
 }

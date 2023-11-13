@@ -22,6 +22,8 @@ namespace cidev_launcher.Views.Pages
         {
             base.OnNavigatedTo(e);
 
+            DisableButtons();
+
             // Store the item to be used in binding to UI
             SelectedGame = e.Parameter as CachedGame;
 
@@ -31,10 +33,49 @@ namespace cidev_launcher.Views.Pages
                 anim.TryStart(gamePage_Thumbnail);
             }
 
+
+            if (CacheService.Instance.IsUpdating(SelectedGame))
+            {
+                gamePage_UpdateProgressRing.Visibility = Visibility.Visible;
+                gamePage_UpdateProgressRing.IsIndeterminate = true;
+
+                CacheService.Instance.UpdateSubscribeProgressRing(UpdateCallback);
+                CacheService.Instance.UpdateSubscribeEndCallback(UpdateEndCallback);
+                CacheService.Instance.DownloadSubscribeProgressRing(UpdateCallback);
+                CacheService.Instance.DownloadSubscribeEndCallback(UpdateEndCallback);
+                CacheService.Instance.DownloadSubscribeProgressRing(UpdateCallback);
+                CacheService.Instance.DownloadSubscribeEndCallback(UpdateEndCallback);
+            }
+            else if (CacheService.Instance.IsDownloading(SelectedGame))
+            {
+                gamePage_DownloadProgressRing.Visibility = Visibility.Visible;
+                gamePage_DownloadProgressRing.IsIndeterminate = true;
+
+                CacheService.Instance.DownloadSubscribeProgressRing(DownloadCallback);
+                CacheService.Instance.DownloadSubscribeEndCallback(DownloadEndCallback);
+            }
+            else if (CacheService.Instance.IsDeleting(SelectedGame))
+            {
+                gamePage_DeleteProgressRing.Visibility = Visibility.Visible;
+                gamePage_DeleteProgressRing.IsIndeterminate = true;
+
+                CacheService.Instance.DownloadSubscribeProgressRing(DeleteCallback);
+                CacheService.Instance.DownloadSubscribeEndCallback(DeleteEndCallback);
+            }
+
+
+
             SetupThumbnail();
             SetupHeader();
 
             SetCTAVisibilities();
+        }
+
+        protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+        {
+            base.OnNavigatingFrom(e);
+
+            CacheService.Instance.UnsubscribeAll();
         }
 
         private void _gamePage_BackButton_Loaded(object sender, RoutedEventArgs e)
@@ -49,32 +90,26 @@ namespace cidev_launcher.Views.Pages
             Frame.GoBack(new SuppressNavigationTransitionInfo());
         }
 
-        private void _gamePage_DownloadButton_Click(object sender, RoutedEventArgs e)
+        private async void _gamePage_DownloadButton_Click(object sender, RoutedEventArgs e)
         {
             DisableButtons();
 
-            CacheService.Instance.DownloadGame(SelectedGame, (int downloadPercentage) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                    UpdateProgressRing(gamePage_DownloadProgressRing, downloadPercentage));
+            gamePage_DownloadProgressRing.Visibility = Visibility.Visible;
+            gamePage_DownloadProgressRing.IsIndeterminate = true;
 
-            }).ContinueWith((t) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    SelectedGame = t.Result;
+            CacheService.Instance.DownloadSubscribeProgressRing(DownloadCallback);
+            CacheService.Instance.DownloadSubscribeEndCallback(DownloadEndCallback);
 
-                    gamePage_DownloadProgressRing.Visibility = Visibility.Collapsed;
+            await CacheService.Instance.DownloadGame(SelectedGame);
 
-                    SetCTAVisibilities();
-                });
-            });
+            CacheService.Instance.UnsubscribeAll();
         }
 
         private void _gamePage_PlayButton_Click(object sender, RoutedEventArgs e)
         {
 
         }
+
         private async void _gamePage_UpdateButton_Click(object sender, RoutedEventArgs e)
         {
             DisableButtons();
@@ -82,42 +117,11 @@ namespace cidev_launcher.Views.Pages
             gamePage_UpdateProgressRing.Visibility = Visibility.Visible;
             gamePage_UpdateProgressRing.IsIndeterminate = true;
 
-            await CacheService.Instance.DeleteGame(SelectedGame);
-            await CacheService.Instance.DownloadThumbnail(SelectedGame).ContinueWith((t) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    SelectedGame = t.Result;
+            CacheService.Instance.UpdateSubscribeProgressRing(UpdateCallback);
+            CacheService.Instance.UpdateSubscribeEndCallback(UpdateEndCallback);
+            await CacheService.Instance.UpdateGame(SelectedGame);
 
-                    SetupThumbnail();
-                });
-            });
-            await CacheService.Instance.DownloadHeader(SelectedGame).ContinueWith((t) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    SelectedGame = t.Result;
-
-                    SetupHeader();
-                });
-            });
-
-            await CacheService.Instance.DownloadGame(SelectedGame, (int downloadPercentage) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                    UpdateProgressRing(gamePage_UpdateProgressRing, downloadPercentage));
-
-            }).ContinueWith((t) =>
-            {
-                DispatcherQueue.TryEnqueue(() =>
-                {
-                    SelectedGame = t.Result;
-
-                    gamePage_UpdateProgressRing.Visibility = Visibility.Collapsed;
-
-                    SetCTAVisibilities();
-                });
-            });
+            CacheService.Instance.UnsubscribeAll();
         }
 
         private void _gamePage_DeleteButton_Click(object sender, RoutedEventArgs e)
@@ -169,6 +173,8 @@ namespace cidev_launcher.Views.Pages
             gamePage_Header.Visibility = Visibility.Collapsed;
             if (SelectedGame.gameInfo.headerImgUrl != null)
             {
+                gamePage_Header.Visibility = Visibility.Visible;
+
                 if (!File.Exists(SelectedGame.headerImgPath))
                 {
                     CacheService.Instance.DownloadHeader(SelectedGame).ContinueWith(t =>
@@ -217,15 +223,63 @@ namespace cidev_launcher.Views.Pages
         }
         private void SetCTAVisibilities()
         {
-            gamePage_DownloadButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Collapsed : Visibility.Visible;
-            gamePage_PlayButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Visible : Visibility.Collapsed;
-            gamePage_UpdateButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Visible : Visibility.Collapsed;
-            gamePage_DeleteButton.Visibility = SelectedGame.isGameDownloaded ? Visibility.Visible : Visibility.Collapsed;
+            bool isUpdating = CacheService.Instance.IsUpdating(SelectedGame);
+            bool isDownloading = CacheService.Instance.IsDownloading(SelectedGame);
+            bool isDeleting = CacheService.Instance.IsDeleting(SelectedGame);
+            bool isGameDownloadedOrUpdating = isUpdating || SelectedGame.isGameDownloaded;
+            gamePage_DownloadButton.Visibility = isGameDownloadedOrUpdating ? Visibility.Collapsed : Visibility.Visible;
+            gamePage_PlayButton.Visibility = isGameDownloadedOrUpdating ? Visibility.Visible : Visibility.Collapsed;
+            gamePage_UpdateButton.Visibility = isGameDownloadedOrUpdating ? Visibility.Visible : Visibility.Collapsed;
+            gamePage_DeleteButton.Visibility = isGameDownloadedOrUpdating ? Visibility.Visible : Visibility.Collapsed;
 
-            gamePage_DownloadButton.IsEnabled = true;
-            gamePage_PlayButton.IsEnabled = true;
-            gamePage_UpdateButton.IsEnabled = true;
-            gamePage_DeleteButton.IsEnabled = true;
+
+            gamePage_DownloadButton.IsEnabled = !isUpdating && !isDownloading && !isDeleting;
+            gamePage_PlayButton.IsEnabled = !isUpdating && !isDownloading && !isDeleting;
+            gamePage_UpdateButton.IsEnabled = !isUpdating && !isDownloading && !isDeleting;
+            gamePage_DeleteButton.IsEnabled = !isUpdating && !isDownloading && !isDeleting;
+        }
+
+
+        private void UpdateCallback(int progress)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+                UpdateProgressRing(gamePage_UpdateProgressRing, progress));
+        }
+        private void UpdateEndCallback(CachedGame result)
+        {
+            ProcessEndCallback(result, gamePage_UpdateProgressRing);
+        }
+        private void DownloadCallback(int progress)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+                UpdateProgressRing(gamePage_DownloadProgressRing, progress));
+        }
+        private void DownloadEndCallback(CachedGame result)
+        {
+            ProcessEndCallback(result, gamePage_DownloadProgressRing);
+        }
+        private void DeleteCallback(int progress)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+                UpdateProgressRing(gamePage_DeleteProgressRing, progress));
+        }
+        private void DeleteEndCallback(CachedGame result)
+        {
+            ProcessEndCallback(result, gamePage_DeleteProgressRing);
+        }
+        private void ProcessEndCallback(CachedGame result, ProgressRing progressRing)
+        {
+            DispatcherQueue.TryEnqueue(() =>
+            {
+                SelectedGame = result;
+
+                SetupThumbnail();
+                SetupHeader();
+
+                progressRing.Visibility = Visibility.Collapsed;
+                
+                SetCTAVisibilities();
+            });
         }
     }
 }
