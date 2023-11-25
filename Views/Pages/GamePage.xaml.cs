@@ -107,7 +107,21 @@ namespace cidev_launcher.Views.Pages
 
         private void _gamePage_PlayButton_Click(object sender, RoutedEventArgs e)
         {
+            gamePage_BackButton.IsEnabled = false;
+            DisableButtons();
 
+            gamePage_PlayProgressRing.Visibility = Visibility.Visible;
+            gamePage_PlayProgressRing.IsIndeterminate = true;
+
+            GameService.Instance.StartGame(SelectedGame.downloadExePath, () =>
+            {
+                DispatcherQueue.TryEnqueue(() => {
+                    gamePage_BackButton.IsEnabled = true;
+                    gamePage_PlayProgressRing.Visibility = Visibility.Collapsed;
+
+                    SetCTAVisibilities();
+                });
+            });
         }
 
         private async void _gamePage_UpdateButton_Click(object sender, RoutedEventArgs e)

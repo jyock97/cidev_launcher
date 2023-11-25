@@ -50,6 +50,11 @@
                         <StackPanel Orientation="Horizontal">
                             <FontIcon Glyph="&#xE768;" />
                             <TextBlock Text="Play" Margin="8, 0, 0, 0" />
+
+                            <ProgressRing x:Name="gamePage_PlayProgressRing"
+                                          Visibility="Collapsed"
+                                          Width="20" Height="20"
+                                          Margin="8, 0, 0, 0" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
                     <Button x:Name="gamePage_UpdateButton"

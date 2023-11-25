@@ -9,7 +9,32 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
+    <StackPanel
+            HorizontalAlignment="Left" Orientation="Vertical" Margin="16" >
 
-    </Grid>
+        <TextBox x:Name="settingsPage_QuitTextBox"
+                 Header="Password for quitting the application"
+                 Width="300" />
+        <Button x:Name="settingsPage_QuitButton"
+                Click="_settingsPage_QuitButton_Click"
+                Width="300"
+                Margin="0 8 0 64"
+                Background="{ThemeResource SystemAccentColor}" >
+
+            <TextBlock Text="Quit" VerticalAlignment="Center" />
+        </Button>
+
+        <NumberBox x:Name="settingsPage_InactiveNumberBox"
+                   Header="Inactive Miliseconds (-1 to disable it)"
+                   PlaceholderText="1000"
+                   Width="300" />
+        <Button x:Name="settingsPage_UpdateInactiveTimeButton"
+                Click="_settingsPage_UpdateInactiveTimeButton_Click"
+                Width="300"
+                Margin="0 8 0 24"
+                Background="{ThemeResource SystemAccentColor}" >
+
+            <TextBlock Text="Update" VerticalAlignment="Center" />
+        </Button>
+    </StackPanel>
 </Page>

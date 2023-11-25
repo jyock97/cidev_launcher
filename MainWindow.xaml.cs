@@ -1,8 +1,9 @@
+using cidev_launcher.Services;
 using cidev_launcher.Views.Pages;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using System.Net;
 
 namespace cidev_launcher
 {
@@ -11,6 +12,10 @@ namespace cidev_launcher
         public MainWindow()
         {
             this.InitializeComponent();
+
+            AppWindow.SetPresenter(AppWindowPresenterKind.FullScreen);
+
+            EventHookService.Instance.SetupEventHook();
         }
 
         private void _OnNavigationChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

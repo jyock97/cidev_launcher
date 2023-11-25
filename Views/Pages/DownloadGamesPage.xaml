@@ -9,7 +9,10 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
-
-    </Grid>
+    <GridView x:Name="downloadGamesPage_GridView"
+        IsItemClickEnabled="True"
+        SelectionMode="None"
+        Loaded="_downloadGamesPageGridView_Loaded"
+        ItemClick="_downloadGamesPageGridView_ItemClick" >
+    </GridView>
 </Page>

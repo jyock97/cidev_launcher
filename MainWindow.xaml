@@ -10,7 +10,7 @@
 
     <NavigationView x:Name="mainWindow_NavigationView" PaneDisplayMode="Top" SelectionChanged="_OnNavigationChanged" IsBackButtonVisible="Collapsed">
         <NavigationView.MenuItems>
-            <NavigationViewItem x:Name="mainWindow_NavigationItemGames" Content="Games"  Tag="Games" >
+            <NavigationViewItem x:Name="mainWindow_NavigationItemGames" Content="Games"  Tag="Games" IsSelected="True" >
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xE7FC;" />
                 </NavigationViewItem.Icon>
@@ -18,7 +18,7 @@
                     <InfoBadge x:Name="mainWindow_GamesInfoBadge" Value="0" Opacity="0"/>
                 </NavigationViewItem.InfoBadge>
             </NavigationViewItem>
-            <NavigationViewItem x:Name="mainWindow_NavigationItemExplore" Content="Explore" Tag="Explore" IsSelected="True" >
+            <NavigationViewItem x:Name="mainWindow_NavigationItemExplore" Content="Explore" Tag="Explore" >
                 <NavigationViewItem.Icon>
                     <FontIcon Glyph="&#xECCD;" />
                 </NavigationViewItem.Icon>

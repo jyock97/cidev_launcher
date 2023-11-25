@@ -6,11 +6,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
 using System.Collections.Generic;
 
-// TODO Continue working with GamePage (Download exe and create new process)
-// TODO Create a restore process on the CacheService for a new GamePage to restore from what is currently happening on another thread
-// |- Need to know if current game is still downloading or Updating
-// |- Need to know the progress of the operation? IsIndeterminate or what is the current value, how can I subscribe for updates to that value?
-
 
 namespace cidev_launcher.Views.Pages
 {

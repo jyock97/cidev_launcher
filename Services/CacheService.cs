@@ -15,12 +15,22 @@ namespace cidev_launcher.Services
     public class CacheService
     {
         private static CacheService _instance;
+        public static CacheService Instance
+        {
+            get
+            {
+                if (_instance == null) { _instance = new CacheService(); }
+                return _instance;
+            }
+        }
 
         private const string CachedPath = "_Cached";
+        private const string AppConfigFileName = "Config.meta";
         private const string ThumbnailFileName = "Thumbnail";
         private const string HeaderFileName = "Header";
         private const string GameDirectoryName = "Game";
 
+        private AppConfig appConfig;
         private List<CachedGame> cachedGames;
 
         private Dictionary<string, CachedGame> currentUpdatingGames = new Dictionary<string, CachedGame>();
@@ -35,14 +45,39 @@ namespace cidev_launcher.Services
         private Action<int> deleteCallback;
         private Action<CachedGame> deleteEndCallback;
 
-        public static CacheService Instance
+        public CacheService()
         {
-            get
+            if (!Directory.Exists($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}"))
             {
-                if (_instance == null) { _instance = new CacheService(); }
-                return _instance;
+                Directory.CreateDirectory($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}");
             }
         }
+
+        public AppConfig GetAppConfig()
+        {
+            string configFile = GetAppConfigFilePath();
+
+            if (appConfig != null) { return appConfig; }
+            
+            if (File.Exists(configFile))
+            {
+                appConfig = JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(configFile), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            }
+            else
+            {
+                appConfig = new AppConfig();
+                SaveNewAppConfig(appConfig);
+            }
+            return appConfig;
+        }
+
+        public void SaveNewAppConfig(AppConfig newAppConfig)
+        {
+            appConfig = newAppConfig;
+            string serialized = JsonSerializer.Serialize(appConfig, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
+            File.WriteAllText($"{GetAppConfigFilePath()}", serialized);
+        }
+
 
         public List<CachedGame> GetCachedGames(List<Game> games)
         {
@@ -58,7 +93,7 @@ namespace cidev_launcher.Services
 
         public async Task<CachedGame> DownloadThumbnail(CachedGame cachedGame)
         {
-            string thumbnailPath = GetFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.thumbnailImgUrl, ThumbnailFileName);
+            string thumbnailPath = GetGameFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.thumbnailImgUrl, ThumbnailFileName);
             thumbnailPath = await DownloadFile(cachedGame.gameInfo.thumbnailImgUrl, thumbnailPath).ConfigureAwait(false);
 
             cachedGame.thumbnailImgPath = thumbnailPath;
@@ -69,7 +104,7 @@ namespace cidev_launcher.Services
 
         public async Task<CachedGame> DownloadHeader(CachedGame cachedGame)
         {
-            string headerPath = GetFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.headerImgUrl, HeaderFileName);
+            string headerPath = GetGameFilePath(cachedGame.gameInfo.gameTitle, cachedGame.gameInfo.headerImgUrl, HeaderFileName);
             headerPath = await DownloadFile(cachedGame.gameInfo.headerImgUrl, headerPath).ConfigureAwait(false);
             cachedGame.headerImgPath = headerPath;
             SaveCacheMetaFile(cachedGame);
@@ -128,7 +163,7 @@ namespace cidev_launcher.Services
                 Debug.WriteLine($"[CacheService][Dowload Game] DownloadFile {fileName}");
 
                 Stream contentStream = downloadGameResponse.Content.ReadAsStream();
-                GameFilePath = GetFilePath(cachedGame.gameInfo.gameTitle, fileName, Hash.GetHashString(cachedGame.gameInfo.gameTitle));
+                GameFilePath = GetGameFilePath(cachedGame.gameInfo.gameTitle, fileName, Hash.GetHashString(cachedGame.gameInfo.gameTitle));
                 FileStream gameFile = File.OpenWrite(GameFilePath);
 
 
@@ -161,7 +196,7 @@ namespace cidev_launcher.Services
             {
                 // Unzip the file
                 downloadCallback?.Invoke(-1);
-                string downloadDirectoryPath = $"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}\\{GameDirectoryName}";
+                string downloadDirectoryPath = $"{GetGameCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}\\{GameDirectoryName}";
                 await Task.Run(() => ZipFile.ExtractToDirectory(GameFilePath, downloadDirectoryPath, true));
 
                 string[] gameExeArray = Directory.GetFiles(downloadDirectoryPath, "*.exe", SearchOption.AllDirectories)
@@ -183,7 +218,7 @@ namespace cidev_launcher.Services
             }
 
             downloadEndCallback?.Invoke(cachedGame);
-            
+
             currentDownloadingGames.Remove(Hash.GetHashString(cachedGame.gameInfo.gameTitle));
 
             return cachedGame;
@@ -194,7 +229,7 @@ namespace cidev_launcher.Services
             currentDeletingGames[Hash.GetHashString(cachedGame.gameInfo.gameTitle)] = cachedGame;
 
             deleteCallback?.Invoke(-1);
-            string cacheDirectory = GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle);
+            string cacheDirectory = GetGameCacheDirectoryPath(cachedGame.gameInfo.gameTitle);
 
             await Task.Run(() =>
             {
@@ -221,17 +256,24 @@ namespace cidev_launcher.Services
             return newCachedGame;
         }
 
-        private string GetCacheDirectoryPath(string gameTitle)
+        private string GetCacheDirectoryPath()
+        {
+            return $"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}";
+        }
+        private string GetGameCacheDirectoryPath(string gameTitle)
         {
             string gameHash = Hash.GetHashString(gameTitle);
-            return $"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}\\{gameHash}";
+            return $"{GetCacheDirectoryPath()}\\{gameHash}";
         }
-
-        private string GetFilePath(string gameTitle, string fileUrl, string fileName)
+        private string GetAppConfigFilePath()
+        {
+            return $"{GetCacheDirectoryPath()}\\{AppConfigFileName}";
+        }
+        private string GetGameFilePath(string gameTitle, string fileUrl, string fileName)
         {
             string fileExtention = Path.GetExtension(fileUrl);
 
-            return $"{GetCacheDirectoryPath(gameTitle)}\\{fileName}{fileExtention}";
+            return $"{GetGameCacheDirectoryPath(gameTitle)}\\{fileName}{fileExtention}";
         }
 
         private async Task<string> DownloadFile(string url, string filePath)
@@ -255,16 +297,16 @@ namespace cidev_launcher.Services
 
         private Dictionary<string, CachedGame> SearchCacheGamesAsync(List<Game> games)
         {
-            if (!Directory.Exists($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}"))
-            {
-                Directory.CreateDirectory($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}");
-            }
-
             Dictionary<string, CachedGame> cachedGamesDict = new Dictionary<string, CachedGame>();
 
             // Finding saved Games
             foreach (string file in Directory.EnumerateFiles($"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}", "*.meta"))
             {
+                if (file == GetAppConfigFilePath())
+                {
+                    continue;
+                }
+
                 CachedGame cachedGame = JsonSerializer.Deserialize<CachedGame>(File.ReadAllText(file), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 Debug.WriteLine($"\t[CacheService][Cache HIT] {cachedGame.gameInfo.gameTitle}");
 
@@ -283,10 +325,10 @@ namespace cidev_launcher.Services
                     string directoryPath = $"{AppDomain.CurrentDomain.BaseDirectory}{CachedPath}\\{gameHash}";
                     Directory.CreateDirectory(directoryPath);
 
-                    string thumbnailPath = GetFilePath(game.gameTitle, game.thumbnailImgUrl, ThumbnailFileName);
+                    string thumbnailPath = GetGameFilePath(game.gameTitle, game.thumbnailImgUrl, ThumbnailFileName);
                     thumbnailPath = File.Exists(thumbnailPath) ? thumbnailPath : null;
 
-                    string headerPath = GetFilePath(game.gameTitle, game.headerImgUrl, HeaderFileName);
+                    string headerPath = GetGameFilePath(game.gameTitle, game.headerImgUrl, HeaderFileName);
                     headerPath = File.Exists(headerPath) ? headerPath : null;
 
                     CachedGame cachedGame = new CachedGame()
@@ -308,12 +350,8 @@ namespace cidev_launcher.Services
         private void SaveCacheMetaFile(CachedGame cachedGame)
         {
             string serialized = JsonSerializer.Serialize(cachedGame, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true });
-            File.WriteAllText($"{GetCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}.meta", serialized);
+            File.WriteAllText($"{GetGameCacheDirectoryPath(cachedGame.gameInfo.gameTitle)}.meta", serialized);
         }
-
-
-
-
 
 
         public bool IsUpdating(CachedGame cachedGame)
